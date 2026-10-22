@@ -1,0 +1,99 @@
+from collections import defaultdict, deque
+
+class Graph:
+    def __init__(self):
+        # Use a dictionary mapping each node to a list of its neighbors
+        self.graph = defaultdict(list)
+
+    def add_edge(self, u, v, bidirectional=True):
+        """Adds an edge between vertex u and vertex v."""
+        self.graph[u].append(v)
+        if bidirectional:
+            self.graph[v].append(u)
+
+    def bfs(self, start_node):
+        """
+        Breadth-First Search (BFS) Traversal
+        Explores layer-by-layer using a FIFO queue.
+        """
+        visited = set()
+        # deque optimized for fast O(1) pops from the left side
+        queue = deque([start_node])
+        visited.add(start_node)
+        
+        traversal_order = []
+
+        while queue:
+            # Dequeue a vertex from the front of the queue
+            current = queue.popleft()
+            traversal_order.append(current)
+
+            # Loop through all unvisited neighbors
+            for neighbor in self.graph[current]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+                    
+        return traversal_order
+
+    def dfs_recursive(self, start_node, visited=None):
+        """
+        Depth-First Search (DFS) - Recursive approach
+        Explores as deeply as possible along each branch before backtracking.
+        """
+        if visited is None:
+            visited = set()
+            
+        visited.add(start_node)
+        traversal_order = [start_node]
+
+        for neighbor in self.graph[start_node]:
+            if neighbor not in visited:
+                # Recursively visit unvisited neighbors and merge results
+                traversal_order.extend(self.dfs_recursive(neighbor, visited))
+                
+        return traversal_order
+
+    def dfs_iterative(self, start_node):
+        """
+        Depth-First Search (DFS) - Iterative approach
+        Uses an explicit LIFO stack instead of the call stack.
+        """
+        visited = set()
+        stack = [start_node]
+        traversal_order = []
+
+        while stack:
+            current = stack.pop()
+            
+            if current not in visited:
+                visited.add(current)
+                traversal_order.append(current)
+                
+                # Push unvisited neighbors onto the stack
+                # (Reversed to maintain consistent left-to-right insertion order matching recursive approach)
+                for neighbor in reversed(self.graph[current]):
+                    if neighbor not in visited:
+                        stack.append(neighbor)
+                        
+        return traversal_order
+
+
+# --- Execution Example ---
+if __name__ == "__main__":
+    # Create a sample graph
+    g = Graph()
+    g.add_edge('A', 'B')
+    g.add_edge('A', 'C')
+    g.add_edge('B', 'D')
+    g.add_edge('B', 'E')
+    g.add_edge('C', 'F')
+
+    print("Graph Structure (Adjacency List):")
+    for node, neighbors in g.graph.items():
+        print(f"  {node} -> {neighbors}")
+
+    print("\n--- Traversals starting from 'A' ---")
+    print(f"BFS (Layer-by-Layer):   {g.bfs('A')}")
+    print(f"DFS (Recursive Deep):   {g.dfs_recursive('A')}")
+    print(f"DFS (Iterative Deep):   {g.dfs_iterative('A')}")
